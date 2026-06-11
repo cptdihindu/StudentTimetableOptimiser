@@ -99,7 +99,7 @@ public class ValidationService {
     }
 
     public boolean isValidCampusMixForSameTopic(ArrayList<ClassRecord> records) {
-        return getInvalidCampusMixTopics(records).isEmpty();
+        return true;
     }
 
     public boolean isTimetableValid(ArrayList<ClassRecord> records,
@@ -139,11 +139,6 @@ public class ValidationService {
                     }
                 }
             }
-        }
-
-        for (String topic : getInvalidCampusMixTopics(records)) {
-            warnings.add("Campus rule issue: Topic " + topic
-                    + " mixes Flinders City Campus with Bedford Park or Tonsley.");
         }
 
         return warnings;
@@ -346,36 +341,6 @@ public class ValidationService {
                 String selectedCampus = safe(selected.getCampus());
                 return "not enough travel time from " + selectedCampus + " to " + candidateCampus
                         + ". Gap: " + actualGap + " minutes. Required: " + requiredTravelMinutes + " minutes";
-            }
-        }
-
-        // Check campus mix for same topic
-        for (ClassRecord selected : selectedRecords) {
-            if (selected == null) {
-                continue;
-            }
-            if (!sameText(candidate.getTopicCode(), selected.getTopicCode())) {
-                continue;
-            }
-            if (candidate.isOnline() || selected.isOnline()) {
-                continue;
-            }
-
-            String candidateCampusKey = getPhysicalCampusKey(candidate.getCampus());
-            String selectedCampusKey = getPhysicalCampusKey(selected.getCampus());
-            
-            if (candidateCampusKey.isEmpty() || selectedCampusKey.isEmpty()) {
-                continue;
-            }
-
-            if (candidateCampusKey.equals("CITY") && (selectedCampusKey.equals("BEDFORD") || selectedCampusKey.equals("TONSLEY"))) {
-                String readableSelected = getReadableCampusName(selectedCampusKey);
-                return "invalid campus combination. This topic already uses " + readableSelected
-                        + ", but this class is at Flinders City Campus.";
-            }
-            if ((candidateCampusKey.equals("BEDFORD") || candidateCampusKey.equals("TONSLEY")) && selectedCampusKey.equals("CITY")) {
-                String readableCandidate = getReadableCampusName(candidateCampusKey);
-                return "invalid campus combination. This topic already uses Flinders City Campus, but this class is at " + readableCandidate + ".";
             }
         }
 

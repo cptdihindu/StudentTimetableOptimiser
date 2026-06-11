@@ -20,6 +20,8 @@ public class TimetableGenerationResult {
     private int rejectedDueToTravelTime;
     private int rejectedDueToCampusRule;
     private int rejectedDueToSemesterOrFilter;
+    private int optimisationScore;
+    private String optimisationSummary;
 
     public TimetableGenerationResult() {
         this.timetable = null;
@@ -35,6 +37,8 @@ public class TimetableGenerationResult {
         this.rejectedDueToTravelTime = 0;
         this.rejectedDueToCampusRule = 0;
         this.rejectedDueToSemesterOrFilter = 0;
+        this.optimisationScore = 0;
+        this.optimisationSummary = "";
     }
 
     public Timetable getTimetable() {
@@ -159,6 +163,22 @@ public class TimetableGenerationResult {
         this.rejectedDueToSemesterOrFilter = rejectedDueToSemesterOrFilter;
     }
 
+    public int getOptimisationScore() {
+        return optimisationScore;
+    }
+
+    public void setOptimisationScore(int optimisationScore) {
+        this.optimisationScore = optimisationScore;
+    }
+
+    public String getOptimisationSummary() {
+        return optimisationSummary == null ? "" : optimisationSummary;
+    }
+
+    public void setOptimisationSummary(String optimisationSummary) {
+        this.optimisationSummary = optimisationSummary == null ? "" : optimisationSummary;
+    }
+
     public boolean isSuccessful() {
         return STATUS_SUCCESS.equals(status);
     }
@@ -179,7 +199,11 @@ public class TimetableGenerationResult {
         builder.append("- Rejected due to clash: ").append(rejectedDueToClash).append("\n");
         builder.append("- Rejected due to travel time: ").append(rejectedDueToTravelTime).append("\n");
         builder.append("- Rejected due to campus rule: ").append(rejectedDueToCampusRule).append("\n");
-        builder.append("- Rejected due to semester/campus filter: ").append(rejectedDueToSemesterOrFilter);
+        builder.append("- Rejected due to semester/campus filter: ").append(rejectedDueToSemesterOrFilter).append("\n");
+        builder.append("- Optimisation score: ").append(optimisationScore);
+        if (!getOptimisationSummary().isEmpty()) {
+            builder.append("\n").append(optimisationSummary);
+        }
         return builder.toString();
     }
 }

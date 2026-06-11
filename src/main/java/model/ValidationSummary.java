@@ -60,7 +60,6 @@ public class ValidationSummary {
         builder.append("Validation Summary:\n");
         builder.append("- Time clashes: ").append(timeClashCount).append("\n");
         builder.append("- Travel-time issues: ").append(travelTimeIssueCount).append("\n");
-        builder.append("- Invalid campus combinations: ").append(invalidCampusCombinationCount).append("\n");
         builder.append("- Missing required classes: ").append(missingRequiredClassesCount).append("\n");
         builder.append("- Status: ").append(status);
         return builder.toString();

@@ -1,0 +1,13 @@
+Timetable Name,Semester,Topic Code,Topic Name,Attendance Mode,Campus,Class Type,Class Instance,Availability Number,First Class Date,Last Class Date,Day,Start Time,End Time,Building,Room
+vgbhnjmk,1,ENGR1401,Professional Skills,In person,Bedford Park,Lecture,1,1,02 Mar,16 Mar,Monday (fortnightly),14:00,15:00,Class Online via Teams (recording available),
+vgbhnjmk,1,COMP1002,Fundamentals of Artificial Intelligence,In person,Bedford Park,Lecture,1,1,02 Mar,02 Mar,Monday (once-only),15:00,17:00,South Lec Theatres,STH2 South Theatre 2
+vgbhnjmk,1,COMP1102,Programming Fundamentals,In person,Flinders City Campus,Workshop,1,1,03 Mar,07 Apr,Tuesday,14:00,17:00,Festival Tower,505 Collaborative Learning
+vgbhnjmk,1,COMP1002,Fundamentals of Artificial Intelligence,In person,Bedford Park,Laboratory,5,1,11 Mar,08 Apr,Wednesday,12:00,14:00,Info Sci & Tech,301 BYOD Computer Lab
+vgbhnjmk,1,COMP1002,Fundamentals of Artificial Intelligence,In person,Flinders City Campus,Workshop,2,1,05 Mar,09 Apr,Thursday,08:00,11:00,Festival Tower,505 Collaborative Learning
+vgbhnjmk,1,COMP1103,UX Fundamentals,In person,Flinders City Campus,Workshop,1,1,05 Mar,09 Apr,Thursday,11:00,14:00,Festival Tower,505 Collaborative Learning
+vgbhnjmk,1,ENGR1401,Professional Skills,In person,Flinders City Campus,Tutorial-2,3,1,05 Mar,09 Apr,Thursday,14:00,15:00,Festival Tower,311 Collaborative Learning
+vgbhnjmk,1,ENGR1401,Professional Skills,In person,Flinders City Campus,Workshop,3,1,05 Mar,09 Apr,Thursday,15:00,17:00,Festival Tower,311 Collaborative Learning
+vgbhnjmk,1,COMP1103,UX Fundamentals,In person,Tonsley,Tutorial,2,1,06 Mar,27 Mar,Friday,09:30,11:00,Tonsley T1,G.07 Digital Fabrication Laboratory
+vgbhnjmk,1,COMP1102,Programming Fundamentals,In person,Bedford Park,Tutorial,2,1,13 Mar,27 Mar,Friday,12:00,13:00,Info Sci & Tech,220 Tutorial Room
+vgbhnjmk,1,COMP1102,Programming Fundamentals,In person,Bedford Park,Practical,5,1,06 Mar,27 Mar,Friday,14:00,16:00,Info Sci & Tech,301 BYOD Computer Lab
+vgbhnjmk,1,COMP1102,Programming Fundamentals,In person,Bedford Park,Lecture,1,1,13 Mar,13 Mar,Friday (once-only),16:00,18:00,Info Sci & Tech,STH3 South Theatre 3

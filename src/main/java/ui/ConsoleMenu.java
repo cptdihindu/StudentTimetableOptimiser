@@ -311,27 +311,18 @@ public class ConsoleMenu {
             return;
         }
 
-        String exportPath = ConsoleUtils.readRequiredTextOrCancel(scanner,
-                "Enter export file path, for example output/timetable.csv");
-        if (exportPath == null) {
-            ConsoleUtils.printWarning("Export cancelled.");
-            ConsoleUtils.pause(scanner);
-            return;
-        }
+        Path exportPath = timetableExporter.getDefaultExportPath(selectedTimetable);
+        System.out.println();
+        System.out.println("Export file:");
+        System.out.println(exportPath);
 
-        if (!exportPath.toLowerCase().endsWith(".csv")) {
-            ConsoleUtils.printError("Export file path must end with .csv.");
-            ConsoleUtils.pause(scanner);
-            return;
-        }
-
-        Boolean confirm = ConsoleUtils.readYesNoOrCancel(scanner, "Export this timetable?");
+        Boolean confirm = ConsoleUtils.readYesNoOrCancel(scanner, "Export this timetable to the exports folder?");
         if (confirm == null) {
             ConsoleUtils.printWarning("Export cancelled.");
         } else if (confirm) {
-            boolean exported = timetableExporter.exportTimetableToCsv(selectedTimetable, exportPath);
+            boolean exported = timetableExporter.exportTimetableToDefaultCsv(selectedTimetable);
             if (exported) {
-                ConsoleUtils.printSuccess("Timetable exported successfully to: " + exportPath.trim());
+                ConsoleUtils.printSuccess("Timetable exported successfully to: " + exportPath);
             } else {
                 ConsoleUtils.printError(timetableExporter.getLastErrorMessage());
             }

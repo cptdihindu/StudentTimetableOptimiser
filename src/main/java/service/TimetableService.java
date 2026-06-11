@@ -89,63 +89,35 @@ public class TimetableService {
         // Group records by topic and type
         Map<String, Map<String, ArrayList<ClassRecord>>> grouped = groupByTopicAndType(filteredRecords);
 
-        // Try to generate timetable with backtracking
-        ArrayList<ClassRecord> selectedRecords = new ArrayList<>();
-        ArrayList<GenerationWarning> warnings = new ArrayList<>();
         ArrayList<String> missingClasses = new ArrayList<>();
+        ArrayList<Requirement> requirements = buildRequirements(topicCodes, grouped, missingClasses, preferences);
+        SearchResult searchResult = findBestGlobalCombination(
+                requirements,
+                allowLectureOverlap,
+                requiredTravelMinutes,
+                preferences
+        );
 
-        int attemptedSelections = 0;
-        int rejectedCount = 0;
-        int rejectedDueToClash = 0;
-        int rejectedDueToTravelTime = 0;
-        int rejectedDueToCampusRule = 0;
-        int rejectedDueToSemesterOrFilter = 0;
-
-        for (String topicCode : topicCodes) {
-            String topicKey = safe(topicCode).toLowerCase();
-            if (topicKey.isEmpty()) {
-                continue;
-            }
-
-            Map<String, ArrayList<ClassRecord>> byType = grouped.get(topicKey);
-            if (byType == null || byType.isEmpty()) {
-                missingClasses.add(topicCode + " (no class types found)");
-                continue;
-            }
-
-            // Try to find a valid combination of all class types for this topic
-            BacktrackingResult backtrackResult = tryFindBestCombinationForTopic(
-                    topicCode,
-                    byType,
-                    selectedRecords,
-                    allowLectureOverlap,
-                    requiredTravelMinutes
-            );
-
-            // Process results from backtracking attempt
-            selectedRecords.addAll(backtrackResult.selectedRecords);
-            attemptedSelections += backtrackResult.attemptedSelections;
-            rejectedCount += backtrackResult.rejectedCount;
-            rejectedDueToClash += backtrackResult.rejectedDueToClash;
-            rejectedDueToTravelTime += backtrackResult.rejectedDueToTravelTime;
-            rejectedDueToCampusRule += backtrackResult.rejectedDueToCampusRule;
-            rejectedDueToSemesterOrFilter += backtrackResult.rejectedDueToSemesterOrFilter;
-            
-            if (!backtrackResult.warnings.isEmpty()) {
-                warnings.addAll(backtrackResult.warnings);
-            }
-            if (!backtrackResult.missingClasses.isEmpty()) {
-                missingClasses.addAll(backtrackResult.missingClasses);
+        ArrayList<ClassRecord> selectedRecords = searchResult.selectedRecords;
+        ArrayList<GenerationWarning> warnings = searchResult.warnings;
+        for (GenerationWarning warning : warnings) {
+            String topic = safe(warning.getTopicCode());
+            String classType = safe(warning.getClassType());
+            String label = (topic + " " + classType).trim();
+            if (!label.isEmpty() && !missingClasses.contains(label)) {
+                missingClasses.add(label);
             }
         }
 
         result.setSelectedRecordsCount(selectedRecords.size());
         result.setGenerationWarnings(warnings);
         result.setMissingClasses(missingClasses);
-        result.setRejectedDueToClash(rejectedDueToClash);
-        result.setRejectedDueToTravelTime(rejectedDueToTravelTime);
-        result.setRejectedDueToCampusRule(rejectedDueToCampusRule);
-        result.setRejectedDueToSemesterOrFilter(rejectedDueToSemesterOrFilter);
+        result.setRejectedDueToClash(searchResult.rejectedDueToClash);
+        result.setRejectedDueToTravelTime(searchResult.rejectedDueToTravelTime);
+        result.setRejectedDueToCampusRule(0);
+        result.setRejectedDueToSemesterOrFilter(searchResult.rejectedDueToSemesterOrFilter);
+        result.setOptimisationScore(searchResult.optimisationScore);
+        result.setOptimisationSummary(buildOptimisationSummary(selectedRecords, preferences));
 
         // Determine status
         if (selectedRecords.isEmpty()) {
@@ -661,7 +633,7 @@ public class TimetableService {
                 continue;
             }
             String prefName = safe(preference.getPreferenceName()).toLowerCase();
-            int weight = Math.max(1, preference.getRanking());
+            int weight = getPreferenceWeight(preference, preferences.size());
 
             if (!campus.isEmpty() && prefName.equals(campus.toLowerCase())) {
                 score += weight;
@@ -683,6 +655,150 @@ public class TimetableService {
         }
 
         return score;
+    }
+
+    private int scoreTimetableByPreferences(ArrayList<ClassRecord> records, ArrayList<Preference> preferences) {
+        if (records == null || records.isEmpty()) {
+            return 0;
+        }
+
+        int score = 0;
+        for (ClassRecord record : records) {
+            score += scoreRecordByPreferences(record, preferences);
+        }
+
+        if (preferences == null || preferences.isEmpty()) {
+            return score;
+        }
+
+        for (Preference preference : preferences) {
+            if (preference == null) {
+                continue;
+            }
+            String prefName = safe(preference.getPreferenceName()).toLowerCase();
+            int weight = getPreferenceWeight(preference, preferences.size());
+
+            if (prefName.equals("all at the same campus")) {
+                score += scoreSameCampusPreference(records, weight);
+            } else if (prefName.equals("evenly spread classes across days")) {
+                score += scoreSpreadAcrossDaysPreference(records, weight);
+            } else if (prefName.equals("compact classes to as few days as possible")) {
+                score += scoreCompactDaysPreference(records, weight);
+            }
+        }
+
+        return score;
+    }
+
+    private int getPreferenceWeight(Preference preference, int preferenceCount) {
+        if (preference == null) {
+            return 0;
+        }
+        int ranking = Math.max(1, preference.getRanking());
+        int count = Math.max(1, preferenceCount);
+        return (count - ranking + 1) * 100;
+    }
+
+    private int scoreSameCampusPreference(ArrayList<ClassRecord> records, int weight) {
+        Map<String, Integer> campusCounts = new HashMap<>();
+        int physicalClassCount = 0;
+
+        for (ClassRecord record : records) {
+            if (record == null || record.isOnline()) {
+                continue;
+            }
+            String campus = safe(record.getCampus()).toLowerCase();
+            if (campus.isEmpty()) {
+                continue;
+            }
+            physicalClassCount++;
+            campusCounts.put(campus, campusCounts.getOrDefault(campus, 0) + 1);
+        }
+
+        if (physicalClassCount == 0) {
+            return weight;
+        }
+
+        int largestCampusCount = 0;
+        for (Integer count : campusCounts.values()) {
+            if (count != null) {
+                largestCampusCount = Math.max(largestCampusCount, count);
+            }
+        }
+
+        return largestCampusCount * weight;
+    }
+
+    private int scoreSpreadAcrossDaysPreference(ArrayList<ClassRecord> records, int weight) {
+        int uniqueDays = getUniqueDayCount(records);
+        return uniqueDays * weight;
+    }
+
+    private int scoreCompactDaysPreference(ArrayList<ClassRecord> records, int weight) {
+        int uniqueDays = getUniqueDayCount(records);
+        if (uniqueDays <= 0) {
+            return 0;
+        }
+        return (8 - Math.min(uniqueDays, 7)) * weight;
+    }
+
+    private int getUniqueDayCount(ArrayList<ClassRecord> records) {
+        Set<String> days = new HashSet<>();
+        if (records == null) {
+            return 0;
+        }
+        for (ClassRecord record : records) {
+            if (record == null) {
+                continue;
+            }
+            String day = safe(record.getBaseDay()).toLowerCase();
+            if (!day.isEmpty()) {
+                days.add(day);
+            }
+        }
+        return days.size();
+    }
+
+    private String buildOptimisationSummary(ArrayList<ClassRecord> records, ArrayList<Preference> preferences) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("- Days used: ").append(getUniqueDayCount(records));
+        builder.append("\n- Campus spread: ").append(getCampusSpreadSummary(records));
+        if (preferences == null || preferences.isEmpty()) {
+            builder.append("\n- Preferences applied: none");
+        } else {
+            builder.append("\n- Preferences applied: ").append(preferences.size());
+        }
+        return builder.toString();
+    }
+
+    private String getCampusSpreadSummary(ArrayList<ClassRecord> records) {
+        Map<String, Integer> campusCounts = new HashMap<>();
+        if (records != null) {
+            for (ClassRecord record : records) {
+                if (record == null) {
+                    continue;
+                }
+                String campus = safe(record.getCampus());
+                if (!campus.isEmpty()) {
+                    campusCounts.put(campus, campusCounts.getOrDefault(campus, 0) + 1);
+                }
+            }
+        }
+
+        if (campusCounts.isEmpty()) {
+            return "none";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        int index = 0;
+        for (Map.Entry<String, Integer> entry : campusCounts.entrySet()) {
+            if (index > 0) {
+                builder.append(", ");
+            }
+            builder.append(entry.getKey()).append(" ").append(entry.getValue());
+            index++;
+        }
+        return builder.toString();
     }
 
     private boolean matchesDayPreference(String baseDay, String preference) {
@@ -756,10 +872,32 @@ public class TimetableService {
 
             Map<String, ArrayList<ClassRecord>> byType = grouped.computeIfAbsent(topicKey, key -> new HashMap<>());
             ArrayList<ClassRecord> list = byType.computeIfAbsent(typeKey, key -> new ArrayList<>());
-            list.add(record);
+            if (!containsSameScheduleOption(list, record)) {
+                list.add(record);
+            }
         }
 
         return grouped;
+    }
+
+    private boolean containsSameScheduleOption(ArrayList<ClassRecord> records, ClassRecord candidate) {
+        if (records == null || candidate == null) {
+            return false;
+        }
+        for (ClassRecord record : records) {
+            if (record == null) {
+                continue;
+            }
+            if (sameText(record.getTopicCode(), candidate.getTopicCode())
+                    && sameText(record.getClassType(), candidate.getClassType())
+                    && sameText(record.getClassInstance(), candidate.getClassInstance())
+                    && sameText(record.getBaseDay(), candidate.getBaseDay())
+                    && sameText(record.getTimeDisplay(), candidate.getTimeDisplay())
+                    && sameText(record.getCampus(), candidate.getCampus())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean matchesSemester(String recordSemester, String selectedSemester) {
@@ -859,6 +997,238 @@ public class TimetableService {
         // Remove instance numbers like "-1", "-2", etc. from class type
         // E.g., "Tutorial-1" -> "Tutorial", "Lecture-2" -> "Lecture"
         return trimmed.replaceAll("-\\d+$", "");
+    }
+
+    private ArrayList<Requirement> buildRequirements(ArrayList<String> topicCodes,
+                                                      Map<String, Map<String, ArrayList<ClassRecord>>> grouped,
+                                                      ArrayList<String> missingClasses,
+                                                      ArrayList<Preference> preferences) {
+        ArrayList<Requirement> requirements = new ArrayList<>();
+        if (topicCodes == null || grouped == null) {
+            return requirements;
+        }
+
+        for (String topicCode : topicCodes) {
+            String topicKey = safe(topicCode).toLowerCase();
+            if (topicKey.isEmpty()) {
+                continue;
+            }
+
+            Map<String, ArrayList<ClassRecord>> byType = grouped.get(topicKey);
+            if (byType == null || byType.isEmpty()) {
+                missingClasses.add(topicCode + " has no classes available for the selected semester and campus filter.");
+                continue;
+            }
+
+            ArrayList<String> classTypes = new ArrayList<>(byType.keySet());
+            classTypes.sort(String::compareToIgnoreCase);
+            for (String classType : classTypes) {
+                ArrayList<ClassRecord> options = byType.get(classType);
+                if (options == null || options.isEmpty()) {
+                    missingClasses.add(topicCode + " " + classType);
+                    continue;
+                }
+
+                ArrayList<ClassRecord> sortedOptions = new ArrayList<>(options);
+                sortedOptions.sort(Comparator
+                        .comparingInt((ClassRecord record) -> -scoreRecordByPreferences(record, preferences))
+                        .thenComparing(record -> safe(record.getBaseDay()).toLowerCase())
+                        .thenComparing(record -> record.getStartTime() == null ? LocalTime.MAX : record.getStartTime())
+                        .thenComparing(record -> safe(record.getClassInstance()).toLowerCase()));
+
+                requirements.add(new Requirement(topicCode, classType, sortedOptions));
+            }
+        }
+
+        requirements.sort(Comparator
+                .comparingInt((Requirement requirement) -> requirement.options.size())
+                .thenComparing(requirement -> safe(requirement.topicCode).toLowerCase())
+                .thenComparing(requirement -> safe(requirement.classType).toLowerCase()));
+        return requirements;
+    }
+
+    private SearchResult findBestGlobalCombination(ArrayList<Requirement> requirements,
+                                                   boolean allowLectureOverlap,
+                                                   int requiredTravelMinutes,
+                                                   ArrayList<Preference> preferences) {
+        SearchResult complete = new SearchResult();
+        if (requirements == null || requirements.isEmpty()) {
+            return complete;
+        }
+
+        tryBacktrackGlobally(
+                requirements,
+                0,
+                new ArrayList<>(),
+                allowLectureOverlap,
+                requiredTravelMinutes,
+                preferences,
+                complete
+        );
+
+        if (complete.hasCompleteTimetable) {
+            complete.warnings.clear();
+            return complete;
+        }
+
+        SearchResult partial = buildBestPartialCombination(
+                requirements,
+                allowLectureOverlap,
+                requiredTravelMinutes,
+                preferences
+        );
+        partial.rejectedDueToClash += complete.rejectedDueToClash;
+        partial.rejectedDueToTravelTime += complete.rejectedDueToTravelTime;
+        partial.rejectedDueToSemesterOrFilter += complete.rejectedDueToSemesterOrFilter;
+        return partial;
+    }
+
+    private boolean tryBacktrackGlobally(ArrayList<Requirement> requirements,
+                                         int requirementIndex,
+                                         ArrayList<ClassRecord> selected,
+                                         boolean allowLectureOverlap,
+                                         int requiredTravelMinutes,
+                                         ArrayList<Preference> preferences,
+                                         SearchResult result) {
+        if (requirementIndex == requirements.size()) {
+            int score = scoreTimetableByPreferences(selected, preferences);
+            if (!result.hasCompleteTimetable || score > result.optimisationScore) {
+                result.selectedRecords = new ArrayList<>(selected);
+                result.optimisationScore = score;
+                result.hasCompleteTimetable = true;
+            }
+            return true;
+        }
+
+        Requirement requirement = requirements.get(requirementIndex);
+        for (ClassRecord option : requirement.options) {
+            result.attemptedSelections++;
+            ArrayList<ClassRecord> test = new ArrayList<>(selected);
+            test.add(option);
+
+            if (validationService.isTimetableValid(test, allowLectureOverlap, requiredTravelMinutes)) {
+                selected.add(option);
+                tryBacktrackGlobally(requirements, requirementIndex + 1, selected,
+                        allowLectureOverlap, requiredTravelMinutes, preferences, result);
+                selected.remove(selected.size() - 1);
+            } else {
+                countRejection(result, option, selected, allowLectureOverlap, requiredTravelMinutes);
+            }
+        }
+
+        return false;
+    }
+
+    private SearchResult buildBestPartialCombination(ArrayList<Requirement> requirements,
+                                                     boolean allowLectureOverlap,
+                                                     int requiredTravelMinutes,
+                                                     ArrayList<Preference> preferences) {
+        SearchResult result = new SearchResult();
+        ArrayList<Requirement> ordered = new ArrayList<>(requirements);
+        ordered.sort(Comparator
+                .comparingInt((Requirement requirement) -> requirement.options.size())
+                .thenComparing(requirement -> -getBestRequirementPreferenceScore(requirement, preferences)));
+
+        for (Requirement requirement : ordered) {
+            GenerationWarning warning = new GenerationWarning(requirement.topicCode, requirement.classType);
+            ClassRecord chosen = null;
+
+            for (ClassRecord option : requirement.options) {
+                result.attemptedSelections++;
+                ArrayList<ClassRecord> test = new ArrayList<>(result.selectedRecords);
+                test.add(option);
+                if (validationService.isTimetableValid(test, allowLectureOverlap, requiredTravelMinutes)) {
+                    chosen = option;
+                    break;
+                }
+
+                String reason = validationService.getDetailedRejectionReason(
+                        option,
+                        result.selectedRecords,
+                        allowLectureOverlap,
+                        requiredTravelMinutes,
+                        true,
+                        true
+                );
+                warning.addRejectionReason(new RejectionReason(safe(option.getClassInstance()), makeFriendlyReason(reason)));
+                countRejection(result, option, result.selectedRecords, allowLectureOverlap, requiredTravelMinutes);
+            }
+
+            if (chosen == null) {
+                result.warnings.add(limitWarningReasons(warning, 3));
+            } else {
+                result.selectedRecords.add(chosen);
+            }
+        }
+
+        result.optimisationScore = scoreTimetableByPreferences(result.selectedRecords, preferences);
+        return result;
+    }
+
+    private int getBestRequirementPreferenceScore(Requirement requirement, ArrayList<Preference> preferences) {
+        int best = 0;
+        if (requirement == null || requirement.options == null) {
+            return best;
+        }
+        for (ClassRecord option : requirement.options) {
+            best = Math.max(best, scoreRecordByPreferences(option, preferences));
+        }
+        return best;
+    }
+
+    private GenerationWarning limitWarningReasons(GenerationWarning warning, int maxReasons) {
+        if (warning == null || warning.getRejectionReasons().size() <= maxReasons) {
+            return warning;
+        }
+        ArrayList<RejectionReason> limited = new ArrayList<>();
+        for (int i = 0; i < maxReasons; i++) {
+            limited.add(warning.getRejectionReasons().get(i));
+        }
+        warning.setRejectionReasons(limited);
+        return warning;
+    }
+
+    private void countRejection(SearchResult result,
+                                ClassRecord option,
+                                ArrayList<ClassRecord> selected,
+                                boolean allowLectureOverlap,
+                                int requiredTravelMinutes) {
+        String reason = validationService.getDetailedRejectionReason(
+                option,
+                selected,
+                allowLectureOverlap,
+                requiredTravelMinutes,
+                true,
+                true
+        );
+        String lower = reason.toLowerCase();
+        if (lower.contains("clash") || lower.contains("overlap")) {
+            result.rejectedDueToClash++;
+        } else if (lower.contains("travel")) {
+            result.rejectedDueToTravelTime++;
+        } else {
+            result.rejectedDueToSemesterOrFilter++;
+        }
+    }
+
+    private String makeFriendlyReason(String reason) {
+        String text = safe(reason);
+        if (text.isEmpty() || text.equalsIgnoreCase("unknown reason")) {
+            return "it does not fit with the selected classes.";
+        }
+        if (text.startsWith("time clash with ")) {
+            return "it overlaps with " + text.substring("time clash with ".length()) + ".";
+        }
+        if (text.startsWith("not enough travel time")) {
+            return text + ".";
+        }
+        if (text.equals("does not match selected semester")) {
+            return "it is not offered in the selected semester.";
+        }
+        if (text.equals("does not match selected campus filter")) {
+            return "it is outside the selected campus filter.";
+        }
+        return text;
     }
 
     /**
@@ -1039,6 +1409,29 @@ public class TimetableService {
     /**
      * Helper class to hold backtracking results for a topic
      */
+    private static class Requirement {
+        String topicCode;
+        String classType;
+        ArrayList<ClassRecord> options;
+
+        Requirement(String topicCode, String classType, ArrayList<ClassRecord> options) {
+            this.topicCode = topicCode;
+            this.classType = classType;
+            this.options = options == null ? new ArrayList<>() : options;
+        }
+    }
+
+    private static class SearchResult {
+        ArrayList<ClassRecord> selectedRecords = new ArrayList<>();
+        ArrayList<GenerationWarning> warnings = new ArrayList<>();
+        boolean hasCompleteTimetable = false;
+        int optimisationScore = 0;
+        int attemptedSelections = 0;
+        int rejectedDueToClash = 0;
+        int rejectedDueToTravelTime = 0;
+        int rejectedDueToSemesterOrFilter = 0;
+    }
+
     private static class BacktrackingResult {
         ArrayList<ClassRecord> selectedRecords = new ArrayList<>();
         ArrayList<GenerationWarning> warnings = new ArrayList<>();

@@ -174,7 +174,7 @@ public class TimetableController {
             ConsoleUtils.printSuccess("Timetable generated successfully.");
         } else if (result.isPartialSuccess()) {
             System.out.println();
-            System.out.println(ConsoleUtils.warningText("PARTIAL SUCCESS: Timetable generated, but some required classes could not be selected."));
+            System.out.println(ConsoleUtils.warningText("PARTIAL SUCCESS: A timetable was created, but some required class types could not fit."));
         } else {
             ConsoleUtils.printError("Unable to generate timetable.");
             if (!result.getErrorMessage().isEmpty()) {
@@ -206,12 +206,12 @@ public class TimetableController {
         ArrayList<GenerationWarning> warnings = result.getGenerationWarnings();
         if (!warnings.isEmpty()) {
             System.out.println();
-            System.out.println("Generation Warnings:");
+            System.out.println("Why some classes could not be added:");
             for (GenerationWarning warning : warnings) {
                 System.out.println("- " + warning.getSummary());
                 ArrayList<RejectionReason> reasons = warning.getRejectionReasons();
                 if (!reasons.isEmpty()) {
-                    System.out.println("  Reasons:");
+                    System.out.println("  Main reasons:");
                     for (RejectionReason reason : reasons) {
                         System.out.println("  - " + reason.getDisplay());
                     }

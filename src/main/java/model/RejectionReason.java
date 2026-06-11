@@ -27,8 +27,8 @@ public class RejectionReason {
 
     public String getDisplay() {
         String instance = (instanceNumber == null || instanceNumber.trim().isEmpty())
-                ? "" : "Instance " + instanceNumber.trim() + " ";
-        return instance + "rejected: " + (reason == null ? "" : reason.trim());
+                ? "" : "Instance " + instanceNumber.trim() + ": ";
+        return instance + (reason == null ? "" : reason.trim());
     }
 
     @Override

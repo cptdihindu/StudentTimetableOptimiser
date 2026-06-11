@@ -72,6 +72,20 @@ public class TimetableExporter {
         return lastErrorMessage == null ? "" : lastErrorMessage;
     }
 
+    public Path getDefaultExportPath(Timetable timetable) {
+        String timetableName = timetable == null ? "" : timetable.getTimetableName();
+        String fileName = sanitizeFileName(timetableName);
+        if (fileName.isEmpty()) {
+            fileName = "Timetable";
+        }
+        return Paths.get("exports", fileName + ".csv");
+    }
+
+    public boolean exportTimetableToDefaultCsv(Timetable timetable) {
+        Path exportPath = getDefaultExportPath(timetable);
+        return exportTimetableToCsv(timetable, exportPath.toString());
+    }
+
     private void writeRecord(BufferedWriter writer, Timetable timetable, ClassRecord record) throws IOException {
         String[] values = {
                 timetable.getTimetableName(),
@@ -111,6 +125,14 @@ public class TimetableExporter {
             return safeValue;
         }
         return "\"" + safeValue.replace("\"", "\"\"") + "\"";
+    }
+
+    private String sanitizeFileName(String value) {
+        String name = value == null ? "" : value.trim();
+        name = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+        name = name.replaceAll("\\p{Cntrl}", "_");
+        name = name.replaceAll("\\s+", " ").trim();
+        return name;
     }
 }
 

@@ -57,8 +57,8 @@ public class GenerationWarning {
     }
 
     public String getSummary() {
-        return "Unable to select a valid " + (classType == null ? "class" : classType.trim())
-                + " class for topic " + (topicCode == null ? "" : topicCode.trim()) + ".";
+        return "Could not fit " + (topicCode == null ? "" : topicCode.trim()) + " "
+                + (classType == null ? "class" : classType.trim()) + " into this timetable.";
     }
 
     private String buildDeduplicationKey(RejectionReason reason) {
