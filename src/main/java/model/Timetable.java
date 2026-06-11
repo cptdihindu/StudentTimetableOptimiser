@@ -149,7 +149,7 @@ public class Timetable {
 
         builder.append("\n");
         builder.append("Timetable Entries:\n");
-        builder.append("═════════════════════════════════════════════════════════════════════════════════════════════\n");
+        builder.append("--------------------------------------------------------------------------------\n");
 
         if (entries.isEmpty()) {
             builder.append("No entries in timetable.\n");

@@ -4,16 +4,22 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ConsoleUtils {
-    private static final String LINE = "--------------------------------------------------";
+    private static final int WIDTH = 72;
+    private static final String LINE = repeat("=", WIDTH);
     private static final String RESET = "\u001B[0m";
     private static final String BOLD = "\u001B[1m";
+    private static final String ITALIC = "\u001B[3m";
+    private static final String UNDERLINE = "\u001B[4m";
     private static final String RED = "\u001B[31m";
     private static final String GREEN = "\u001B[32m";
     private static final String YELLOW = "\u001B[33m";
     private static final String BLUE = "\u001B[34m";
     private static final String CYAN = "\u001B[36m";
     private static final String MAGENTA = "\u001B[35m";
-    private static final String WHITE = "\u001B[37m";
+    private static final String BRIGHT_RED = "\u001B[91m";
+    private static final String BRIGHT_GREEN = "\u001B[92m";
+    private static final String BRIGHT_YELLOW = "\u001B[93m";
+    private static final String BRIGHT_CYAN = "\u001B[96m";
 
     private static boolean colorsEnabled = true;
 
@@ -22,26 +28,35 @@ public class ConsoleUtils {
     }
 
     public static void printSectionTitle(String title) {
-        printLine();
-        System.out.println(titleText(title));
-        printLine();
+        String text = safe(title).toUpperCase();
+        System.out.println("+" + repeat("-", WIDTH - 2) + "+");
+        System.out.println("| " + titleText(padRight(text, WIDTH - 4)) + " |");
+        System.out.println("+" + repeat("-", WIDTH - 2) + "+");
     }
 
     public static void printSuccess(String message) {
-        System.out.println(successText("SUCCESS: " + message));
+        System.out.println(successText("[OK] ") + message);
     }
 
     public static void printError(String message) {
-        System.out.println(errorText("ERROR: " + message));
+        System.out.println(errorText("[ERROR] ") + message);
     }
 
     public static void printWarning(String message) {
-        System.out.println(warningText("WARNING: " + message));
+        System.out.println(warningText("[WARN] ") + message);
+    }
+
+    public static void printInfo(String message) {
+        System.out.println(infoText("[INFO] ") + message);
+    }
+
+    public static void printTip(String message) {
+        System.out.println(infoText("Tip: ") + message);
     }
 
     public static void pause(Scanner scanner) {
         System.out.println();
-        System.out.println("Press Enter to continue...");
+        System.out.println(infoText("Press Enter to continue..."));
         scanner.nextLine();
     }
 
@@ -70,6 +85,44 @@ public class ConsoleUtils {
         printSectionTitle(title);
     }
 
+    public static void printAppBanner(String appName, String subtitle) {
+        String name = safe(appName).toUpperCase();
+        String sub = safe(subtitle);
+        printLine();
+        System.out.println(titleText(center(name, WIDTH)));
+        if (!sub.isEmpty()) {
+            System.out.println(infoText(center(sub, WIDTH)));
+        }
+        printLine();
+    }
+
+    public static void printAsciiTitle() {
+        String[] lines = {
+                " ____  _             _            _   ",
+                "/ ___|| |_ _   _  __| | ___ _ __ | |_ ",
+                "\\___ \\| __| | | |/ _` |/ _ \\ '_ \\| __|",
+                " ___) | |_| |_| | (_| |  __/ | | | |_ ",
+                "|____/ \\__|\\__,_|\\__,_|\\___|_| |_|\\__|"
+        };
+
+        for (String line : lines) {
+            System.out.println(titleText(center(line, WIDTH)));
+        }
+    }
+
+    public static void printMenuOption(int number, String label) {
+        System.out.println(menuOptionText(String.format("[%2d]", number)) + " " + label);
+    }
+
+    public static void printBackOption(String label) {
+        System.out.println(menuOptionText("[ 0]") + " " + label);
+    }
+
+    public static void printPrompt(String prompt) {
+        System.out.println();
+        System.out.print(prompt + " > ");
+    }
+
     public static int readIntChoice(Scanner scanner) {
         if (scanner.hasNextInt()) {
             int value = scanner.nextInt();
@@ -84,7 +137,7 @@ public class ConsoleUtils {
     public static String readRequiredText(Scanner scanner, String prompt) {
         String value;
         do {
-            System.out.println(prompt);
+            printPrompt(prompt);
             value = scanner.nextLine().trim();
             if (value.isEmpty()) {
                 printError("This field is required.");
@@ -97,7 +150,7 @@ public class ConsoleUtils {
     public static String readRequiredTextOrCancel(Scanner scanner, String prompt) {
         String value;
         do {
-            System.out.println(prompt + " or 0 to cancel:");
+            printPrompt(prompt + " or 0 to cancel");
             value = scanner.nextLine().trim();
             if (value.equals("0")) {
                 return null;
@@ -111,12 +164,12 @@ public class ConsoleUtils {
     }
 
     public static String readOptionalText(Scanner scanner, String prompt) {
-        System.out.println(prompt);
+        printPrompt(prompt);
         return scanner.nextLine().trim();
     }
 
     public static String readOptionalTextOrCancel(Scanner scanner, String prompt) {
-        System.out.println(prompt + " or 0 to cancel:");
+        printPrompt(prompt + " or 0 to cancel");
         String value = scanner.nextLine().trim();
         if (value.equals("0")) {
             return null;
@@ -126,7 +179,7 @@ public class ConsoleUtils {
 
     public static boolean readYesNo(Scanner scanner, String prompt) {
         while (true) {
-            System.out.println(prompt);
+            printPrompt(prompt);
             String input = scanner.nextLine().trim();
             if (input.equalsIgnoreCase("Y")) {
                 return true;
@@ -140,7 +193,7 @@ public class ConsoleUtils {
 
     public static Boolean readYesNoOrCancel(Scanner scanner, String prompt) {
         while (true) {
-            System.out.println(prompt + " (Y/N or 0 to cancel):");
+            printPrompt(prompt + " (Y/N or 0 to cancel)");
             String input = scanner.nextLine().trim();
             if (input.equals("0")) {
                 return null;
@@ -157,7 +210,7 @@ public class ConsoleUtils {
 
     public static Integer readSingleNumberOrCancel(Scanner scanner, String prompt, int min, int max) {
         while (true) {
-            System.out.println(prompt);
+            printPrompt(prompt);
             String input = scanner.nextLine().trim();
             if (input.equals("0")) {
                 return null;
@@ -179,7 +232,7 @@ public class ConsoleUtils {
 
     public static ArrayList<Integer> readMultipleNumbersOrCancel(Scanner scanner, String prompt, int min, int max) {
         while (true) {
-            System.out.println(prompt);
+            printPrompt(prompt);
             String input = scanner.nextLine().trim();
             if (input.equals("0")) {
                 return null;
@@ -228,7 +281,7 @@ public class ConsoleUtils {
             return;
         }
         for (int i = 0; i < options.size(); i++) {
-            System.out.println(menuOptionText("[" + (i + 1) + "]") + " " + options.get(i));
+            printMenuOption(i + 1, options.get(i));
         }
     }
 
@@ -284,27 +337,66 @@ public class ConsoleUtils {
     }
 
     public static String successText(String text) {
-        return color(text, GREEN);
+        return color(text, BOLD + BRIGHT_GREEN);
     }
 
     public static String errorText(String text) {
-        return color(text, RED);
+        return color(text, BOLD + BRIGHT_RED);
     }
 
     public static String warningText(String text) {
-        return color(text, YELLOW);
+        return color(text, BOLD + BRIGHT_YELLOW);
     }
 
     public static String infoText(String text) {
-        return color(text, CYAN);
+        return color(text, BRIGHT_CYAN);
     }
 
     public static String titleText(String text) {
-        return color(text, BOLD + CYAN);
+        return color(text, BOLD + UNDERLINE + CYAN);
     }
 
     public static String menuOptionText(String text) {
-        return color(text, YELLOW);
+        return color(text, BOLD + BRIGHT_YELLOW);
+    }
+
+    public static String mutedText(String text) {
+        return color(text, ITALIC + BLUE);
+    }
+
+    public static String highlightText(String text) {
+        return color(text, BOLD + MAGENTA);
+    }
+
+    private static String repeat(String value, int count) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            builder.append(value);
+        }
+        return builder.toString();
+    }
+
+    private static String center(String text, int width) {
+        String value = safe(text);
+        if (value.length() >= width) {
+            return value;
+        }
+        int padding = width - value.length();
+        int left = padding / 2;
+        int right = padding - left;
+        return repeat(" ", left) + value + repeat(" ", right);
+    }
+
+    private static String padRight(String text, int width) {
+        String value = safe(text);
+        if (value.length() >= width) {
+            return value.substring(0, width);
+        }
+        return value + repeat(" ", width - value.length());
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private static String color(String text, String ansiCode) {

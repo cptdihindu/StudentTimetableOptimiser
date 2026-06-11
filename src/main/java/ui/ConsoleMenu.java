@@ -50,35 +50,29 @@ public class ConsoleMenu {
     }
 
     private void printAppHeader() {
-        System.out.println("==================================================");
-        System.out.println(ConsoleUtils.titleText("     ____  _             _            _   "));
-        System.out.println(ConsoleUtils.titleText("    / ___|| |_ _   _  __| | ___ _ __ | |_ "));
-        System.out.println(ConsoleUtils.titleText("    \\___ \\| __| | | |/ _` |/ _ \\ '_ \\| __|"));
-        System.out.println(ConsoleUtils.titleText("     ___) | |_| |_| | (_| |  __/ | | | |_ "));
-        System.out.println(ConsoleUtils.titleText("    |____/ \\__|\\__,_|\\__,_|\\___|_| |_|\\__|"));
+        ConsoleUtils.printLine();
+        ConsoleUtils.printAsciiTitle();
+        ConsoleUtils.printLine();
+        System.out.println(ConsoleUtils.titleText("STUDENT TIMETABLE OPTIMISER"));
+        System.out.println(ConsoleUtils.mutedText("Build complete timetables from imported class CSVs"));
         System.out.println();
-        System.out.println(ConsoleUtils.titleText("        STUDENT TIMETABLE OPTIMISER"));
-        System.out.println("==================================================");
-        System.out.println();
+        ConsoleUtils.printInfo("Start by importing CSV files, then generate and export a timetable.");
     }
 
     private void printMainHeader() {
-        System.out.println("==================================================");
-        System.out.println(ConsoleUtils.titleText("        STUDENT TIMETABLE OPTIMISER"));
-        System.out.println("==================================================");
+        ConsoleUtils.printAppBanner("Student Timetable Optimiser",
+                "Main Menu");
     }
 
     private void printMainMenu() {
-        System.out.println("Main Menu");
-        System.out.println(ConsoleUtils.menuOptionText("[1]") + " Class Data Management");
-        System.out.println(ConsoleUtils.menuOptionText("[2]") + " Timetable Generation");
-        System.out.println(ConsoleUtils.menuOptionText("[3]") + " Timetable Management");
-        System.out.println(ConsoleUtils.menuOptionText("[4]") + " Export Timetable");
-        System.out.println(ConsoleUtils.menuOptionText("[5]") + " Configuration");
-        System.out.println(ConsoleUtils.menuOptionText("[6]") + " Help / About");
-        System.out.println(ConsoleUtils.menuOptionText("[0]") + " Exit");
-        System.out.println();
-        System.out.println("Enter your choice:");
+        ConsoleUtils.printMenuOption(1, "Class Data Management");
+        ConsoleUtils.printMenuOption(2, "Timetable Generation");
+        ConsoleUtils.printMenuOption(3, "Timetable Management");
+        ConsoleUtils.printMenuOption(4, "Export Timetable");
+        ConsoleUtils.printMenuOption(5, "Configuration");
+        ConsoleUtils.printMenuOption(6, "Help / About");
+        ConsoleUtils.printBackOption("Exit");
+        ConsoleUtils.printPrompt("Enter your choice");
     }
 
     private void handleMainMenuChoice(int choice, Scanner scanner) {
@@ -105,7 +99,7 @@ public class ConsoleMenu {
                 System.out.println("Thank you for using Student Timetable Optimiser. Goodbye!");
                 break;
             default:
-                System.out.println("Invalid choice. Please enter a number from 0 to 6.");
+                ConsoleUtils.printError("Invalid choice. Please enter a number from 0 to 6.");
                 ConsoleUtils.pause(scanner);
                 break;
         }
@@ -124,13 +118,12 @@ public class ConsoleMenu {
 
     private void printConfigurationMenu() {
         ConsoleUtils.printSectionTitle("APPLICATION CONFIGURATION");
-        System.out.println(ConsoleUtils.menuOptionText("[1]") + " View current configuration");
-        System.out.println(ConsoleUtils.menuOptionText("[2]") + " Set CSV folder path");
-        System.out.println(ConsoleUtils.menuOptionText("[3]") + " Set travel time minutes");
-        System.out.println(ConsoleUtils.menuOptionText("[4]") + " Toggle colour output");
-        System.out.println(ConsoleUtils.menuOptionText("[0]") + " Back to main menu");
-        System.out.println();
-        System.out.println("Enter your choice:");
+        ConsoleUtils.printMenuOption(1, "View current configuration");
+        ConsoleUtils.printMenuOption(2, "Set CSV folder path");
+        ConsoleUtils.printMenuOption(3, "Set travel time minutes");
+        ConsoleUtils.printMenuOption(4, "Toggle colour output");
+        ConsoleUtils.printBackOption("Back to main menu");
+        ConsoleUtils.printPrompt("Enter your choice");
     }
 
     private void handleConfigurationChoice(int choice, Scanner scanner) {
@@ -166,14 +159,14 @@ public class ConsoleMenu {
 
     private void showSetCsvFolderPathScreen(Scanner scanner) {
         ConsoleUtils.clearAndPrintSection("SET CSV FOLDER PATH");
-        System.out.println("You can enter an absolute or relative folder path.");
+        ConsoleUtils.printTip("You can enter an absolute or relative folder path.");
         System.out.println();
-        System.out.println("Absolute path example:");
-        System.out.println("D:\\Shortcuts\\Documents\\#MyProjects\\#IsuruJavaApp\\StudentTimetableOptimiser\\CSVs");
+        System.out.println(ConsoleUtils.highlightText("Absolute path example:"));
+        System.out.println(ConsoleUtils.mutedText("D:\\Shortcuts\\Documents\\#MyProjects\\#IsuruJavaApp\\StudentTimetableOptimiser\\CSVs"));
         System.out.println();
-        System.out.println("Relative path examples:");
-        System.out.println("CSVs");
-        System.out.println("..\\SharedCSVs");
+        System.out.println(ConsoleUtils.highlightText("Relative path examples:"));
+        System.out.println(ConsoleUtils.mutedText("CSVs"));
+        System.out.println(ConsoleUtils.mutedText("..\\SharedCSVs"));
         System.out.println();
         System.out.println("Relative paths are resolved from the current working directory where the app is launched.");
         System.out.println();
@@ -225,7 +218,7 @@ public class ConsoleMenu {
         System.out.println();
 
         while (true) {
-            System.out.println("Enter travel time in minutes or 0 to cancel:");
+            ConsoleUtils.printPrompt("Enter travel time in minutes or 0 to cancel");
             String input = scanner.nextLine().trim();
             if (input.equals("0")) {
                 ConsoleUtils.printWarning("Configuration update cancelled.");
@@ -263,9 +256,9 @@ public class ConsoleMenu {
         boolean isEnabled = appConfigService.isColorsEnabled();
         System.out.println("Current colour output: " + (isEnabled ? "Enabled" : "Disabled"));
         System.out.println();
-        System.out.println(ConsoleUtils.menuOptionText("[1]") + " Enable colours");
-        System.out.println(ConsoleUtils.menuOptionText("[2]") + " Disable colours");
-        System.out.println(ConsoleUtils.menuOptionText("[0]") + " Cancel");
+        ConsoleUtils.printMenuOption(1, "Enable colours");
+        ConsoleUtils.printMenuOption(2, "Disable colours");
+        ConsoleUtils.printBackOption("Cancel");
 
         Integer selection = ConsoleUtils.readSingleNumberOrCancel(scanner,
                 "Select colour option:", 1, 2);
@@ -284,7 +277,7 @@ public class ConsoleMenu {
 
     private void showExportTimetableScreen(Scanner scanner) {
         ConsoleUtils.clearAndPrintSection("EXPORT TIMETABLE");
-        System.out.println("Tip: Type 0 at any input prompt to cancel and go back.");
+        ConsoleUtils.printTip("Type 0 at any input prompt to cancel and go back.");
         System.out.println();
 
         if (!timetableService.hasTimetables()) {
@@ -313,8 +306,8 @@ public class ConsoleMenu {
 
         Path exportPath = timetableExporter.getDefaultExportPath(selectedTimetable);
         System.out.println();
-        System.out.println("Export file:");
-        System.out.println(exportPath);
+        System.out.println(ConsoleUtils.highlightText("Export file:"));
+        System.out.println(ConsoleUtils.mutedText(exportPath.toString()));
 
         Boolean confirm = ConsoleUtils.readYesNoOrCancel(scanner, "Export this timetable to the exports folder?");
         if (confirm == null) {
@@ -356,13 +349,12 @@ public class ConsoleMenu {
         ConsoleUtils.clearAndPrintSection("HELP / ABOUT");
         System.out.println("Student Timetable Optimiser is a Java console application.");
         System.out.println("It helps students import university class data from CSV files and generate convenient timetables.");
-        System.out.println("The app is planned to support class data management, timetable generation,");
-        System.out.println("clash checking, travel-time validation, and CSV export.");
+        System.out.println("The app supports class data management, timetable generation,");
+        System.out.println("clash checking, travel-time validation, preference scoring, and CSV export.");
         System.out.println();
-        System.out.println("Rules:");
+        System.out.println(ConsoleUtils.highlightText("Rules:"));
         System.out.println("- This is a console application only.");
         System.out.println("- No graphical interface is used.");
-        System.out.println("- Some features are currently placeholders and will be connected to real logic in later steps.");
         System.out.println("- The CSV folder path can be changed from Main Menu -> Configuration.");
         System.out.println("- The app creates app-config.properties automatically if it is missing.");
         System.out.println("- CSV folder paths can be absolute or relative.");
@@ -373,11 +365,11 @@ public class ConsoleMenu {
     private void printPathInputHelp() {
         System.out.println("Path input help:");
         System.out.println("- Absolute path example:");
-        System.out.println("  D:\\Shortcuts\\Documents\\CSVs");
+        System.out.println("  " + ConsoleUtils.mutedText("D:\\Shortcuts\\Documents\\CSVs"));
         System.out.println("- Relative path example:");
-        System.out.println("  CSVs");
+        System.out.println("  " + ConsoleUtils.mutedText("CSVs"));
         System.out.println("- Another relative path example:");
-        System.out.println("  ..\\SharedCSVs");
+        System.out.println("  " + ConsoleUtils.mutedText("..\\SharedCSVs"));
         System.out.println("Relative paths are resolved from the folder where you run the app.");
     }
 }

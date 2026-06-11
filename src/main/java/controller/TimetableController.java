@@ -41,14 +41,13 @@ public class TimetableController {
 
     private void printTimetableMenu() {
         ConsoleUtils.printSectionTitle("TIMETABLE MANAGEMENT");
-        System.out.println(ConsoleUtils.menuOptionText("[1]") + " Generate new timetable");
-        System.out.println(ConsoleUtils.menuOptionText("[2]") + " Browse saved timetables");
-        System.out.println(ConsoleUtils.menuOptionText("[3]") + " View timetable details");
-        System.out.println(ConsoleUtils.menuOptionText("[4]") + " Edit timetable");
-        System.out.println(ConsoleUtils.menuOptionText("[5]") + " Delete timetable");
-        System.out.println(ConsoleUtils.menuOptionText("[0]") + " Back to main menu");
-        System.out.println();
-        System.out.println("Enter your choice:");
+        ConsoleUtils.printMenuOption(1, "Generate new timetable");
+        ConsoleUtils.printMenuOption(2, "Browse saved timetables");
+        ConsoleUtils.printMenuOption(3, "View timetable details");
+        ConsoleUtils.printMenuOption(4, "Edit timetable");
+        ConsoleUtils.printMenuOption(5, "Delete timetable");
+        ConsoleUtils.printBackOption("Back to main menu");
+        ConsoleUtils.printPrompt("Enter your choice");
     }
 
     private void handleTimetableChoice(int choice, Scanner scanner) {
@@ -71,7 +70,7 @@ public class TimetableController {
             case 0:
                 break;
             default:
-                System.out.println("Invalid choice. Please enter a number from 0 to 5.");
+                ConsoleUtils.printError("Invalid choice. Please enter a number from 0 to 5.");
                 ConsoleUtils.pause(scanner);
                 break;
         }
@@ -85,7 +84,7 @@ public class TimetableController {
             return;
         }
 
-        System.out.println("Tip: Type 0 at any input prompt to cancel and go back.");
+        ConsoleUtils.printTip("Type 0 at any input prompt to cancel and go back.");
 
         // Read and validate timetable name
         String name = readValidTimetableName(scanner);
@@ -311,7 +310,7 @@ public class TimetableController {
         for (int i = 0; i < entries.size(); i++) {
             TimetableEntry entry = entries.get(i);
             String summary = entry == null ? "(no class selected)" : entry.getSummary();
-            System.out.println("[" + (i + 1) + "] " + summary);
+            ConsoleUtils.printMenuOption(i + 1, summary);
         }
 
         Integer entrySelection = ConsoleUtils.readSingleNumberOrCancel(scanner,
@@ -495,7 +494,7 @@ public class TimetableController {
 
     private String readValidTimetableName(Scanner scanner) {
         while (true) {
-            System.out.println("Timetable name (leave blank for automatic name) or 0 to cancel:");
+            ConsoleUtils.printPrompt("Timetable name (leave blank for automatic name) or 0 to cancel");
             String input = scanner.nextLine().trim();
             
             // 0 means cancel
@@ -638,7 +637,7 @@ public class TimetableController {
         ConsoleUtils.printNumberedOptions(campusOptions);
         
         while (true) {
-            System.out.println("Select campus numbers separated by commas, leave blank for no filter, or type 'cancel' to go back:");
+            ConsoleUtils.printPrompt("Select campus numbers, blank for no filter, or cancel");
             String input = scanner.nextLine().trim();
             
             // Empty input or 0 means no campus filter
@@ -705,7 +704,7 @@ public class TimetableController {
         ConsoleUtils.printNumberedOptions(options);
         
         while (true) {
-            System.out.println("Select preference numbers in priority order, separated by commas, leave blank for no preferences, or type 'cancel' to go back:");
+            ConsoleUtils.printPrompt("Select preference numbers in priority order, blank for none, or cancel");
             String input = scanner.nextLine().trim();
             
             // Empty input or 0 means no preferences

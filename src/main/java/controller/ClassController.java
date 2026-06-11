@@ -37,15 +37,14 @@ public class ClassController {
 
     private void printClassDataMenu() {
         ConsoleUtils.printSectionTitle("CLASS DATA MANAGEMENT");
-        System.out.println(ConsoleUtils.menuOptionText("[1]") + " Import class data from CSV");
-        System.out.println(ConsoleUtils.menuOptionText("[2]") + " Browse imported classes");
-        System.out.println(ConsoleUtils.menuOptionText("[3]") + " View class details");
-        System.out.println(ConsoleUtils.menuOptionText("[4]") + " Search class records");
-        System.out.println(ConsoleUtils.menuOptionText("[5]") + " Edit class record");
-        System.out.println(ConsoleUtils.menuOptionText("[6]") + " Delete class record");
-        System.out.println(ConsoleUtils.menuOptionText("[0]") + " Back to main menu");
-        System.out.println();
-        System.out.println("Enter your choice:");
+        ConsoleUtils.printMenuOption(1, "Import class data from CSV");
+        ConsoleUtils.printMenuOption(2, "Browse imported classes");
+        ConsoleUtils.printMenuOption(3, "View class details");
+        ConsoleUtils.printMenuOption(4, "Search class records");
+        ConsoleUtils.printMenuOption(5, "Edit class record");
+        ConsoleUtils.printMenuOption(6, "Delete class record");
+        ConsoleUtils.printBackOption("Back to main menu");
+        ConsoleUtils.printPrompt("Enter your choice");
     }
 
     private void handleClassDataChoice(int choice, Scanner scanner) {
@@ -71,7 +70,7 @@ public class ClassController {
             case 0:
                 break;
             default:
-                System.out.println("Invalid choice. Please enter a number from 0 to 6.");
+                ConsoleUtils.printError("Invalid choice. Please enter a number from 0 to 6.");
                 ConsoleUtils.pause(scanner);
                 break;
         }
@@ -79,7 +78,7 @@ public class ClassController {
 
     private void showImportClassDataScreen(Scanner scanner) {
         ConsoleUtils.clearAndPrintSection("IMPORT CLASS DATA FROM CSV");
-        System.out.println("Tip: Type 0 at any input prompt to cancel and go back.");
+        ConsoleUtils.printTip("Type 0 at any input prompt to cancel and go back.");
         Path configuredFolder = appConfigService.getResolvedCsvFolderPath();
         boolean hasConfiguredFolder = configuredFolder != null
                 && Files.exists(configuredFolder)
@@ -181,7 +180,7 @@ public class ClassController {
 
         System.out.println(classService.getBrowseSummary());
         System.out.println();
-        System.out.println("Enter class record number or 0 to cancel:");
+        ConsoleUtils.printPrompt("Enter class record number or 0 to cancel");
         int recordNumber = ConsoleUtils.readIntChoice(scanner);
         if (recordNumber == 0) {
             ConsoleUtils.printWarning("View class details cancelled.");
@@ -226,7 +225,7 @@ public class ClassController {
 
         System.out.println(classService.getBrowseSummary());
         System.out.println();
-        System.out.println("Enter class record number or 0 to cancel:");
+        ConsoleUtils.printPrompt("Enter class record number or 0 to cancel");
         int recordNumber = ConsoleUtils.readIntChoice(scanner);
         if (recordNumber == 0) {
             ConsoleUtils.printWarning("Edit cancelled.");
@@ -243,7 +242,7 @@ public class ClassController {
         System.out.println(classService.getFullDetailsByIndex(recordNumber));
         System.out.println();
         printEditFieldOptions();
-        System.out.println("Select field to edit or 0 to cancel:");
+        ConsoleUtils.printPrompt("Select field to edit or 0 to cancel");
 
         int fieldChoice = ConsoleUtils.readIntChoice(scanner);
         if (fieldChoice == 0) {
@@ -312,7 +311,7 @@ public class ClassController {
 
         System.out.println(classService.getBrowseSummary());
         System.out.println();
-        System.out.println("Enter class record number or 0 to cancel:");
+        ConsoleUtils.printPrompt("Enter class record number or 0 to cancel");
         int recordNumber = ConsoleUtils.readIntChoice(scanner);
         if (recordNumber == 0) {
             ConsoleUtils.printWarning("Delete cancelled.");
@@ -349,22 +348,22 @@ public class ClassController {
     }
 
     private void printEditFieldOptions() {
-        System.out.println("[1] Topic Code");
-        System.out.println("[2] Topic Name");
-        System.out.println("[3] Attendance Mode");
-        System.out.println("[4] Campus");
-        System.out.println("[5] Semester");
-        System.out.println("[6] Availability Number");
-        System.out.println("[7] Class Type");
-        System.out.println("[8] Class Instance");
-        System.out.println("[9] First Class Date");
-        System.out.println("[10] Last Class Date");
-        System.out.println("[11] Day");
-        System.out.println("[12] Start Time");
-        System.out.println("[13] End Time");
-        System.out.println("[14] Building");
-        System.out.println("[15] Room");
-        System.out.println("[0] Cancel");
+        ConsoleUtils.printMenuOption(1, "Topic Code");
+        ConsoleUtils.printMenuOption(2, "Topic Name");
+        ConsoleUtils.printMenuOption(3, "Attendance Mode");
+        ConsoleUtils.printMenuOption(4, "Campus");
+        ConsoleUtils.printMenuOption(5, "Semester");
+        ConsoleUtils.printMenuOption(6, "Availability Number");
+        ConsoleUtils.printMenuOption(7, "Class Type");
+        ConsoleUtils.printMenuOption(8, "Class Instance");
+        ConsoleUtils.printMenuOption(9, "First Class Date");
+        ConsoleUtils.printMenuOption(10, "Last Class Date");
+        ConsoleUtils.printMenuOption(11, "Day");
+        ConsoleUtils.printMenuOption(12, "Start Time");
+        ConsoleUtils.printMenuOption(13, "End Time");
+        ConsoleUtils.printMenuOption(14, "Building");
+        ConsoleUtils.printMenuOption(15, "Room");
+        ConsoleUtils.printBackOption("Cancel");
         System.out.println();
     }
 
@@ -411,15 +410,14 @@ public class ClassController {
     }
 
     private void printSearchMenu() {
-        System.out.println(ConsoleUtils.menuOptionText("[1]") + " Search by topic");
-        System.out.println(ConsoleUtils.menuOptionText("[2]") + " Search by campus");
-        System.out.println(ConsoleUtils.menuOptionText("[3]") + " Search by semester");
-        System.out.println(ConsoleUtils.menuOptionText("[4]") + " Search by class type");
-        System.out.println(ConsoleUtils.menuOptionText("[5]") + " Search by day");
-        System.out.println(ConsoleUtils.menuOptionText("[6]") + " Advanced manual search");
-        System.out.println(ConsoleUtils.menuOptionText("[0]") + " Back");
-        System.out.println();
-        System.out.println("Enter your choice:");
+        ConsoleUtils.printMenuOption(1, "Search by topic");
+        ConsoleUtils.printMenuOption(2, "Search by campus");
+        ConsoleUtils.printMenuOption(3, "Search by semester");
+        ConsoleUtils.printMenuOption(4, "Search by class type");
+        ConsoleUtils.printMenuOption(5, "Search by day");
+        ConsoleUtils.printMenuOption(6, "Advanced manual search");
+        ConsoleUtils.printBackOption("Back");
+        ConsoleUtils.printPrompt("Enter your choice");
     }
 
     private void handleSearchChoice(int choice, Scanner scanner) {
@@ -540,7 +538,7 @@ public class ClassController {
     }
 
     private void runAdvancedSearch(Scanner scanner) {
-        System.out.println("Tip: Leave a field blank to ignore it. Type 0 at any field to cancel and go back.");
+        ConsoleUtils.printTip("Leave a field blank to ignore it. Type 0 at any field to cancel and go back.");
         String topicCode = ConsoleUtils.readOptionalTextOrCancel(scanner, "Topic code");
         if (topicCode == null) {
             cancelSearch(scanner);
@@ -733,7 +731,7 @@ public class ClassController {
         for (int i = 0; i < csvFiles.size(); i++) {
             System.out.println("[" + (i + 1) + "] " + csvFiles.get(i).getFileName());
         }
-        System.out.println("[all] Import all files");
+        System.out.println(ConsoleUtils.menuOptionText("[all]") + " Import all files");
         System.out.println();
     }
 
@@ -753,7 +751,7 @@ public class ClassController {
 
     private ArrayList<Path> readCsvSelection(Scanner scanner, ArrayList<Path> availableCsvFiles, Path configuredFolder) {
         while (true) {
-            System.out.println("Enter CSV number(s), custom CSV file path, \"all\" to import all files, or 0 to cancel:");
+            ConsoleUtils.printPrompt("Enter CSV number(s), custom CSV path, all, or 0 to cancel");
             String input = scanner.nextLine().trim();
             if (input.equals("0")) {
                 return null;
