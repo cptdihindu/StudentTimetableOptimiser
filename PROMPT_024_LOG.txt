@@ -1,0 +1,78 @@
+## Prompt 024 - Fix Duplicate Rejection Reasons and Implement Backtracking Algorithm
+
+**Date:** June 10, 2026
+**AI Tool Used:** GitHub Copilot in VS Code
+**Prompt Summary:** Fixed duplicate rejection reasons appearing multiple times in generation warnings and implemented backtracking algorithm to explore alternative class instance combinations instead of greedily accepting the first valid option.
+
+**Original Prompt Used:**
+The timetable generation output is now mostly correct, but two issues remain.
+
+Important: Record this prompt in the Section 2 prompt engineering evidence because this is an AI-assisted code change.
+
+Issue 1: Duplicate rejection reasons
+The console output repeats identical rejection reasons several times, for example:
+Instance 1 rejected: invalid campus combination...
+Instance 1 rejected: invalid campus combination...
+
+This likely happens because the same class instance appears in multiple CSV rows/date ranges.
+
+Fix:
+- Deduplicate rejection reasons before displaying them.
+- Do not remove the actual internal checking, only clean the displayed warnings.
+- Use a display deduplication key such as:
+  topicCode + classType + classInstance + reasonType + message text
+- Keep different reasons for the same instance if they are actually different.
+- After the fix, each identical instance/reason message should appear only once.
+
+Issue 2: Backtracking / optimisation still appears greedy
+Observed example:
+- The generator selects COMP1103 Workshop at Flinders City Campus.
+- Then it cannot select COMP1103 Tutorial because tutorials are at Tonsley.
+- A better generator should try alternative COMP1103 workshop instances, such as Tonsley workshop, before deciding the timetable is partial.
+
+Fix:
+- Improve the timetable generator so it searches combinations of class instances instead of permanently accepting the first valid option.
+- For each topic and required class type, group candidates by class instance.
+- Try alternative candidate combinations using backtracking or another simple search method.
+- Prefer a complete timetable over a partial timetable.
+- If multiple complete timetables exist, choose the one with the best preference score.
+- If no complete timetable exists, choose the best partial timetable and show missing classes with reasons.
+- Required rules must be checked before preference scoring:
+  1. same-topic campus rule
+  2. time clash rule, respecting lecture overlap setting
+  3. travel-time rule
+  4. semester and campus filter rules
+- Do not generate JUnit test code.
+
+Also make sure the normal travel-time setting remains 30 minutes for final assignment behaviour. Testing with 5 minutes is okay, but the default rule should be 30 minutes.
+
+**Files Created/Modified:**
+
+* src/main/java/model/GenerationWarning.java
+* src/main/java/service/TimetableService.java
+* src/main/java/service/ValidationService.java
+* src/main/java/controller/TimetableController.java
+
+**AI-Generated/Edited Code Summary:**
+1. **GenerationWarning.java**: Added HashSet<String> deduplicationKeys to track unique rejection combinations using instance + reason text as the key. The addRejectionReason() method now only adds rejection reasons that haven't been seen before, eliminating duplicates while preserving different reasons.
+
+2. **TimetableService.java**: Implemented backtracking algorithm with tryBacktrackForCombinationForTopic() recursive method that explores alternative combinations of class instances for each topic before giving up. Created inner class BacktrackingResult to track selection statistics. Refactored generation loop to call backtracking for each topic, tracking rejection counts by category (clash, travel time, campus rule, semester/filter).
+
+3. **ValidationService.java**: Added getReadableCampusName() helper method to map internal campus key codes (CITY, BEDFORD, TONSLEY) to user-friendly names in rejection reasons. Updated campus mixing rule error messages to use readable campus names instead of internal enums.
+
+4. **TimetableController.java**: Added displayCampusFilter() to show "No filter / All campuses allowed" when no campus filter is active. Added readValidTimetableName() method to validate timetable names (only letters, numbers, spaces, hyphens, underscores). Updated PARTIAL SUCCESS message to use new format. Updated suggestion method call to pass allowLectureOverlap parameter for context-aware suggestions.
+
+**Application Improvements:**
+- Duplicate rejection reasons no longer clutter generation warnings
+- Algorithm now explores alternative class combinations before declaring a class impossible
+- Campus filter display is clearer for users
+- Timetable names are validated against unusual characters
+- Context-aware suggestions (won't suggest enabling lecture overlap if already enabled)
+- Travel time default remains 30 minutes as specified
+- Rejection reason categorization and counting now accurate
+- Validation summary properly populated with actual missing class counts
+
+**Human Review Notes:**
+[To be completed by student after reviewing the output.]
+
+**Status:** Completed
