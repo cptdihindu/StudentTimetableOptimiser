@@ -50,12 +50,8 @@ public class ConsoleMenu {
     }
 
     private void printAppHeader() {
-        ConsoleUtils.printLine();
-        ConsoleUtils.printAsciiTitle();
-        ConsoleUtils.printLine();
-        System.out.println(ConsoleUtils.titleText("STUDENT TIMETABLE OPTIMISER"));
-        System.out.println(ConsoleUtils.mutedText("Build complete timetables from imported class CSVs"));
-        System.out.println();
+        ConsoleUtils.printAppBanner("Student Timetable Optimiser",
+                "Build complete timetables from imported class CSVs");
         ConsoleUtils.printInfo("Start by importing CSV files, then generate and export a timetable.");
     }
 
@@ -117,6 +113,7 @@ public class ConsoleMenu {
     }
 
     private void printConfigurationMenu() {
+        ConsoleUtils.printCompactBanner();
         ConsoleUtils.printSectionTitle("APPLICATION CONFIGURATION");
         ConsoleUtils.printMenuOption(1, "View current configuration");
         ConsoleUtils.printMenuOption(2, "Set CSV folder path");
@@ -313,7 +310,8 @@ public class ConsoleMenu {
         if (confirm == null) {
             ConsoleUtils.printWarning("Export cancelled.");
         } else if (confirm) {
-            boolean exported = timetableExporter.exportTimetableToDefaultCsv(selectedTimetable);
+            boolean exported = ConsoleUtils.runWithSpinner("Exporting timetable CSV...", () ->
+                    timetableExporter.exportTimetableToDefaultCsv(selectedTimetable));
             if (exported) {
                 ConsoleUtils.printSuccess("Timetable exported successfully to: " + exportPath);
             } else {

@@ -36,6 +36,7 @@ public class ClassController {
     }
 
     private void printClassDataMenu() {
+        ConsoleUtils.printCompactBanner();
         ConsoleUtils.printSectionTitle("CLASS DATA MANAGEMENT");
         ConsoleUtils.printMenuOption(1, "Import class data from CSV");
         ConsoleUtils.printMenuOption(2, "Browse imported classes");
@@ -112,55 +113,61 @@ public class ClassController {
             return;
         }
 
-        int totalNew = 0;
-        int totalUpdated = 0;
-        ArrayList<String> allWarnings = new ArrayList<>();
-        ArrayList<String> allErrors = new ArrayList<>();
-        boolean anySuccess = false;
+        ImportSummary importSummary = ConsoleUtils.runWithSpinner("Importing selected CSV file(s)...", () ->
+                importSelectedCsvFiles(selectedPaths));
 
-        for (Path selectedPath : selectedPaths) {
-            boolean success = classService.importFromCsv(selectedPath.toString());
-            if (success) {
-                anySuccess = true;
-                totalNew += classService.getLastImportNewCount();
-                totalUpdated += classService.getLastImportUpdatedCount();
-                allWarnings.addAll(classService.getLastImportWarnings());
-            } else {
-                String name = selectedPath.getFileName() == null
-                        ? selectedPath.toString()
-                        : selectedPath.getFileName().toString();
-                allErrors.add(name + ": " + classService.getLastErrorMessage());
-            }
-        }
-
-        if (anySuccess) {
+        if (importSummary.anySuccess) {
             ConsoleUtils.printSuccess("CSV import completed.");
-            System.out.println("New records imported: " + totalNew);
-            System.out.println("Existing records updated: " + totalUpdated);
+            System.out.println("New records imported: " + importSummary.totalNew);
+            System.out.println("Existing records updated: " + importSummary.totalUpdated);
             System.out.println("Total class records stored: " + classService.getClassRecordCount());
-        } else if (allErrors.size() == 1) {
-            ConsoleUtils.printError(allErrors.get(0));
+        } else if (importSummary.errors.size() == 1) {
+            ConsoleUtils.printError(importSummary.errors.get(0));
         } else {
             ConsoleUtils.printError("No CSV files were imported.");
         }
 
-        if (!allErrors.isEmpty() && anySuccess) {
+        if (!importSummary.errors.isEmpty() && importSummary.anySuccess) {
             System.out.println();
             System.out.println("Import errors:");
-            for (String error : allErrors) {
+            for (String error : importSummary.errors) {
                 System.out.println("- " + error);
             }
         }
 
-        if (!allWarnings.isEmpty()) {
+        if (!importSummary.warnings.isEmpty()) {
             System.out.println();
             System.out.println("Import warnings:");
-            for (String warning : allWarnings) {
+            for (String warning : importSummary.warnings) {
                 System.out.println("- " + warning);
             }
         }
 
         ConsoleUtils.pause(scanner);
+    }
+
+    private ImportSummary importSelectedCsvFiles(ArrayList<Path> selectedPaths) {
+        ImportSummary summary = new ImportSummary();
+        if (selectedPaths == null) {
+            return summary;
+        }
+
+        for (Path selectedPath : selectedPaths) {
+            boolean success = classService.importFromCsv(selectedPath.toString());
+            if (success) {
+                summary.anySuccess = true;
+                summary.totalNew += classService.getLastImportNewCount();
+                summary.totalUpdated += classService.getLastImportUpdatedCount();
+                summary.warnings.addAll(classService.getLastImportWarnings());
+            } else {
+                String name = selectedPath.getFileName() == null
+                        ? selectedPath.toString()
+                        : selectedPath.getFileName().toString();
+                summary.errors.add(name + ": " + classService.getLastErrorMessage());
+            }
+        }
+
+        return summary;
     }
 
     private void showBrowseClassesScreen(Scanner scanner) {
@@ -607,7 +614,8 @@ public class ClassController {
 
     private void runSearch(SearchCriteria criteria, Scanner scanner) {
         SearchService searchService = new SearchService();
-        ArrayList<ClassRecord> results = searchService.search(classService.getAllClassRecords(), criteria);
+        ArrayList<ClassRecord> results = ConsoleUtils.runWithSpinner("Searching class records...", () ->
+                searchService.search(classService.getAllClassRecords(), criteria));
 
         System.out.println();
         System.out.println("Search criteria:");
@@ -879,6 +887,14 @@ public class ClassController {
         }
 
         return results.isEmpty() ? null : results;
+    }
+
+    private static class ImportSummary {
+        private int totalNew;
+        private int totalUpdated;
+        private boolean anySuccess;
+        private final ArrayList<String> warnings = new ArrayList<>();
+        private final ArrayList<String> errors = new ArrayList<>();
     }
 }
 

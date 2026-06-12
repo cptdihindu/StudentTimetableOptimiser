@@ -2,6 +2,8 @@ package ui;
 
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public class ConsoleUtils {
     private static final int WIDTH = 72;
@@ -16,10 +18,16 @@ public class ConsoleUtils {
     private static final String BLUE = "\u001B[34m";
     private static final String CYAN = "\u001B[36m";
     private static final String MAGENTA = "\u001B[35m";
+    private static final String BLACK = "\u001B[30m";
     private static final String BRIGHT_RED = "\u001B[91m";
     private static final String BRIGHT_GREEN = "\u001B[92m";
     private static final String BRIGHT_YELLOW = "\u001B[93m";
     private static final String BRIGHT_CYAN = "\u001B[96m";
+    private static final String BG_RED = "\u001B[41m";
+    private static final String BG_GREEN = "\u001B[42m";
+    private static final String BG_YELLOW = "\u001B[43m";
+    private static final String BG_BLUE = "\u001B[44m";
+    private static final String BG_CYAN = "\u001B[46m";
 
     private static boolean colorsEnabled = true;
 
@@ -29,29 +37,27 @@ public class ConsoleUtils {
 
     public static void printSectionTitle(String title) {
         String text = safe(title).toUpperCase();
-        System.out.println("+" + repeat("-", WIDTH - 2) + "+");
-        System.out.println("| " + titleText(padRight(text, WIDTH - 4)) + " |");
-        System.out.println("+" + repeat("-", WIDTH - 2) + "+");
+        System.out.println(sectionBar(" " + text + " "));
     }
 
     public static void printSuccess(String message) {
-        System.out.println(successText("[OK] ") + message);
+        System.out.println(statusBadge(" OK ", BG_GREEN + BLACK) + " " + message);
     }
 
     public static void printError(String message) {
-        System.out.println(errorText("[ERROR] ") + message);
+        System.out.println(statusBadge(" ERROR ", BG_RED + BOLD) + " " + message);
     }
 
     public static void printWarning(String message) {
-        System.out.println(warningText("[WARN] ") + message);
+        System.out.println(statusBadge(" WARN ", BG_YELLOW + BLACK) + " " + message);
     }
 
     public static void printInfo(String message) {
-        System.out.println(infoText("[INFO] ") + message);
+        System.out.println(statusBadge(" INFO ", BG_BLUE + BOLD) + " " + message);
     }
 
     public static void printTip(String message) {
-        System.out.println(infoText("Tip: ") + message);
+        System.out.println(statusBadge(" TIP ", BG_CYAN + BLACK) + " " + mutedText(message));
     }
 
     public static void pause(Scanner scanner) {
@@ -82,14 +88,14 @@ public class ConsoleUtils {
 
     public static void clearAndPrintSection(String title) {
         clearScreen();
+        printCompactBanner();
         printSectionTitle(title);
     }
 
     public static void printAppBanner(String appName, String subtitle) {
-        String name = safe(appName).toUpperCase();
         String sub = safe(subtitle);
         printLine();
-        System.out.println(titleText(center(name, WIDTH)));
+        printAsciiTitle();
         if (!sub.isEmpty()) {
             System.out.println(infoText(center(sub, WIDTH)));
         }
@@ -98,16 +104,38 @@ public class ConsoleUtils {
 
     public static void printAsciiTitle() {
         String[] lines = {
-                " ____  _             _            _   ",
-                "/ ___|| |_ _   _  __| | ___ _ __ | |_ ",
-                "\\___ \\| __| | | |/ _` |/ _ \\ '_ \\| __|",
-                " ___) | |_| |_| | (_| |  __/ | | | |_ ",
-                "|____/ \\__|\\__,_|\\__,_|\\___|_| |_|\\__|"
+                " ____  _____ _   _ ____  _____ _   _ _____",
+                "/ ___||_   _| | | |  _ \\| ____| \\ | |_   _|",
+                "\\___ \\  | | | | | | | | |  _| |  \\| | | |",
+                " ___) | | | | |_| | |_| | |___| |\\  | | |",
+                "|____/  |_|  \\___/|____/|_____|_| \\_| |_|",
+                " _____ ___ __  __ _____ _____  _    ____  _     _____",
+                "|_   _|_ _|  \\/  | ____|_   _|/ \\  | __ )| |   | ____|",
+                "  | |  | || |\\/| |  _|   | | / _ \\ |  _ \\| |   |  _|",
+                "  | |  | || |  | | |___  | |/ ___ \\| |_) | |___| |___",
+                "  |_| |___|_|  |_|_____| |_/_/   \\_\\____/|_____|_____|",
+                "  ___  ____ _____ ___ __  __ ___ ____  _____ ____",
+                " / _ \\|  _ \\_   _|_ _|  \\/  |_ _/ ___|| ____|  _ \\",
+                "| | | | |_) || |  | || |\\/| || |\\___ \\|  _| | |_) |",
+                "| |_| |  __/ | |  | || |  | || | ___) | |___|  _ <",
+                " \\___/|_|    |_| |___|_|  |_|___|____/|_____|_| \\_\\"
         };
 
         for (String line : lines) {
-            System.out.println(titleText(center(line, WIDTH)));
+            System.out.println(asciiText(center(line, WIDTH)));
         }
+    }
+
+    public static void printCompactBanner() {
+        System.out.println(accentLine());
+        System.out.println(asciiText(center(" ____ _____ ___", WIDTH)));
+        System.out.println(asciiText(center("/ ___|_   _/ _ \\", WIDTH)));
+        System.out.println(asciiText(center("\\___ \\ | || | | |", WIDTH)));
+        System.out.println(asciiText(center(" ___) || || |_| |", WIDTH)));
+        System.out.println(asciiText(center("|____/ |_| \\___/", WIDTH)));
+        System.out.println(titleText(center("STUDENT TIMETABLE OPTIMISER", WIDTH)));
+        System.out.println(mutedText(center("smart console scheduling assistant", WIDTH)));
+        System.out.println(accentLine());
     }
 
     public static void printMenuOption(int number, String label) {
@@ -121,6 +149,39 @@ public class ConsoleUtils {
     public static void printPrompt(String prompt) {
         System.out.println();
         System.out.print(prompt + " > ");
+    }
+
+    public static <T> T runWithSpinner(String message, Supplier<T> task) {
+        if (task == null) {
+            return null;
+        }
+
+        String safeMessage = safe(message);
+        AtomicBoolean running = new AtomicBoolean(true);
+        Thread spinnerThread = new Thread(() -> animateSpinner(safeMessage, running));
+        spinnerThread.setDaemon(true);
+        spinnerThread.start();
+
+        try {
+            return task.get();
+        } finally {
+            running.set(false);
+            try {
+                spinnerThread.join(250);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            clearSpinnerLine(safeMessage);
+        }
+    }
+
+    public static void runWithSpinner(String message, Runnable task) {
+        runWithSpinner(message, () -> {
+            if (task != null) {
+                task.run();
+            }
+            return null;
+        });
     }
 
     public static int readIntChoice(Scanner scanner) {
@@ -353,7 +414,11 @@ public class ConsoleUtils {
     }
 
     public static String titleText(String text) {
-        return color(text, BOLD + UNDERLINE + CYAN);
+        return color(text, BOLD + BRIGHT_CYAN);
+    }
+
+    public static String asciiText(String text) {
+        return color(text, BOLD + CYAN);
     }
 
     public static String menuOptionText(String text) {
@@ -368,6 +433,24 @@ public class ConsoleUtils {
         return color(text, BOLD + MAGENTA);
     }
 
+    private static String statusBadge(String text, String ansiCode) {
+        if (!colorsEnabled || !supportsAnsi()) {
+            return "[" + safe(text) + "]";
+        }
+        return color(text, ansiCode);
+    }
+
+    private static String sectionBar(String text) {
+        String label = safe(text).toUpperCase();
+        int side = Math.max(2, (WIDTH - label.length()) / 2);
+        String bar = repeat("-", side) + label + repeat("-", Math.max(2, WIDTH - side - label.length()));
+        return color(bar, BG_CYAN + BLACK);
+    }
+
+    private static String accentLine() {
+        return color(repeat("=", WIDTH), BOLD + BRIGHT_CYAN);
+    }
+
     private static String repeat(String value, int count) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < count; i++) {
@@ -377,7 +460,7 @@ public class ConsoleUtils {
     }
 
     private static String center(String text, int width) {
-        String value = safe(text);
+        String value = text == null ? "" : text;
         if (value.length() >= width) {
             return value;
         }
@@ -393,6 +476,31 @@ public class ConsoleUtils {
             return value.substring(0, width);
         }
         return value + repeat(" ", width - value.length());
+    }
+
+    private static void animateSpinner(String message, AtomicBoolean running) {
+        char[] frames = {'-', '/', '|', '\\'};
+        int index = 0;
+
+        while (running.get()) {
+            String text = "\r" + infoText(String.valueOf(frames[index])) + " " + message;
+            System.out.print(text);
+            System.out.flush();
+            index = (index + 1) % frames.length;
+
+            try {
+                Thread.sleep(120);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+    }
+
+    private static void clearSpinnerLine(String message) {
+        int width = Math.max(WIDTH, safe(message).length() + 8);
+        System.out.print("\r" + repeat(" ", width) + "\r");
+        System.out.flush();
     }
 
     private static String safe(String value) {

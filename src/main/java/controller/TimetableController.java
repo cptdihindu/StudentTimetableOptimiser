@@ -40,6 +40,7 @@ public class TimetableController {
     }
 
     private void printTimetableMenu() {
+        ConsoleUtils.printCompactBanner();
         ConsoleUtils.printSectionTitle("TIMETABLE MANAGEMENT");
         ConsoleUtils.printMenuOption(1, "Generate new timetable");
         ConsoleUtils.printMenuOption(2, "Browse saved timetables");
@@ -150,7 +151,7 @@ public class TimetableController {
         }
 
         // Generate timetable with detailed results
-        TimetableGenerationResult result = timetableService.generateTimetableWithDetails(
+        TimetableGenerationResult result = ConsoleUtils.runWithSpinner("Generating optimized timetable...", () -> timetableService.generateTimetableWithDetails(
                 name,
                 semester,
                 selectedTopics,
@@ -159,7 +160,7 @@ public class TimetableController {
                 preferences,
                 classService.getAllClassRecords(),
                 travelMinutes
-        );
+        ));
 
         // Display results
         if (result == null) {

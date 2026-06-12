@@ -1,6 +1,0 @@
-Timetable Name,Semester,Topic Code,Topic Name,Attendance Mode,Campus,Class Type,Class Instance,Availability Number,First Class Date,Last Class Date,Day,Start Time,End Time,Building,Room
-njkml,1,COMP1102,Programming Fundamentals,In person,Bedford Park,Lecture,1,1,02 Mar,02 Mar,Monday (once-only),12:00,14:00,Info Sci & Tech,STH3 South Theatre 3
-njkml,1,COMP1102,Programming Fundamentals,In person,Bedford Park,Tutorial,1,1,16 Mar,30 Mar,Monday,14:00,15:00,Info Sci & Tech,220 Tutorial Room
-njkml,1,COMP1002,Fundamentals of Artificial Intelligence,In person,Bedford Park,Lecture,1,1,02 Mar,02 Mar,Monday (once-only),15:00,17:00,South Lec Theatres,STH2 South Theatre 2
-njkml,1,COMP1102,Programming Fundamentals,In person,Bedford Park,Practical,1,1,03 Mar,07 Apr,Tuesday,08:00,10:00,Info Sci & Tech,301 BYOD Computer Lab
-njkml,1,COMP1002,Fundamentals of Artificial Intelligence,In person,Bedford Park,Laboratory,1,1,11 Mar,08 Apr,Wednesday,14:00,16:00,Info Sci & Tech,301 BYOD Computer Lab
