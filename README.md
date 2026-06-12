@@ -102,7 +102,7 @@ Main settings:
 
 ```properties
 csv.folder.path=CSVs
-travel.time.minutes=5
+travel.time.minutes=30
 colors.enabled=true
 ```
 
@@ -157,3 +157,13 @@ Main Menu -> Configuration -> Toggle colour output
 - This is an in-memory console app. Generated timetables exist while the app is running and can be exported to CSV.
 - The project intentionally avoids Maven or Gradle to keep the build simple for coursework-style submission.
 - `AI_PROMPTS_SHORT.md` provides a compact record of the AI prompts used during development.
+
+## Generated And Local Folders
+
+Some folders may appear while building or running the project:
+
+- `build/` is created by `compile.bat`. It contains compiled `.class` files and temporary build files.
+- `out/` is an IDE/output folder from earlier Java runs or editor builds. It is not part of the main source code.
+- `.idea/` contains IntelliJ IDEA project settings. It is only needed if opening the project in IntelliJ.
+- `.git/` stores Git version-control data. Do not edit it manually.
+- `exports/` stores timetable CSV files created by the export feature.
