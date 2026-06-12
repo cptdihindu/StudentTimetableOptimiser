@@ -149,3 +149,31 @@ Prompt 037 - Apply UI ideas from an article about ANSI escape codes. Use ANSI co
 
 
 Prompt 038 - Create a short prompt evidence file. Refer to the long `AI_PROMPT_LOG.md` and this ChatGPT conversation, then create `AI_PROMPTS_SHORT.md` with brief but useful prompt summaries separated by two empty lines.
+
+
+
+Prompt 039 - Expand the short prompt evidence file because the first version was too brief. Make each prompt summary somewhat detailed so a reader can understand the purpose of the work without reading the full long prompt log.
+
+
+
+Prompt 040 - Review the console UI styling against the article about making Java console apps stand out. Explain whether background colours, bold text, underlines, and ANSI styling can be used in a proper Java console app, and recommend a safe approach before making more changes.
+
+
+
+Prompt 041 - Apply the recommended console UI polish. Add stronger visual identity across the app, show an ASCII-style title beyond only the opening screen, add coloured status badges and section bars, and keep the app as a normal Java console application launched through the JAR/build script.
+
+
+
+Prompt 042 - Improve the ASCII title and submenu banners after testing in Windows PowerShell. Make the title readable in every menu, avoid underlines that distort ASCII art, separate compact banner text from the ASCII wordmark, and improve contrast for coloured section headers.
+
+
+
+Prompt 043 - Add animated loading feedback for longer-running console tasks. Create a reusable spinner using `-`, `/`, `|`, and `\`, then show it during timetable generation, CSV importing, timetable exporting, and class record searching without interfering with input prompts.
+
+
+
+Prompt 044 - Fix low-contrast section header text. Change the light-blue section bar text from bold black, which some terminals render as grey, to plain black so labels such as `CLASS DATA MANAGEMENT` are easier to read.
+
+
+
+Prompt 045 - Finalise the project documentation. Update `AI_PROMPTS_SHORT.md` with the prompts used after the previous last entry, and improve the README so it looks professional, accurate, and ready for submission or handoff.
